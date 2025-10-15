@@ -1,0 +1,16 @@
+# Node / Vue
+frontend/my-vue-app/node_modules/
+frontend/my-vue-app/dist/
+frontend/my-vue-app/.vite/
+
+# .NET / C#
+backend/UPSProxy/bin/
+backend/UPSProxy/obj/
+
+# VS / System files
+.vs/
+.vscode/
+*.user
+*.suo
+.DS_Store
+Thumbs.db
