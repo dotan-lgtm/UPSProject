@@ -1,10 +1,14 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\dotan\\Source\\Repos\\UPSProxy\\",
+  "WorkspaceRootPath": "C:\\Users\\dotan\\UPSPProject\\backend\\UPSProxy\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{6EB3B3CB-911E-487A-B61B-ACAE1069176E}|UPSProxy\\UPSProxy.csproj|c:\\users\\dotan\\source\\repos\\upsproxy\\upsproxy\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6EB3B3CB-911E-487A-B61B-ACAE1069176E}|UPSProxy\\UPSProxy.csproj|solutionrelative:upsproxy\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\dotan\\UPSPProject\\backend\\UPSProxy\\UPSProxy\\Program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:UPSProxy\\Program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\dotan\\UPSPProject\\backend\\UPSProxy\\UPSProxy\\Properties\\credentials.txt||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:UPSProxy\\Properties\\credentials.txt||{8B382828-6202-11D1-8870-0000F87579D2}"
     }
   ],
   "DocumentGroupContainers": [
@@ -14,17 +18,30 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "credentials.txt",
+              "DocumentMoniker": "C:\\Users\\dotan\\UPSPProject\\backend\\UPSProxy\\UPSProxy\\Properties\\credentials.txt",
+              "RelativeDocumentMoniker": "UPSProxy\\Properties\\credentials.txt",
+              "ToolTip": "C:\\Users\\dotan\\UPSPProject\\backend\\UPSProxy\\UPSProxy\\Properties\\credentials.txt",
+              "RelativeToolTip": "UPSProxy\\Properties\\credentials.txt",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAA/AQAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
+              "WhenOpened": "2025-10-19T10:54:12.685Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\dotan\\Source\\Repos\\UPSProxy\\UPSProxy\\Program.cs",
+              "DocumentMoniker": "C:\\Users\\dotan\\UPSPProject\\backend\\UPSProxy\\UPSProxy\\Program.cs",
               "RelativeDocumentMoniker": "UPSProxy\\Program.cs",
-              "ToolTip": "C:\\Users\\dotan\\Source\\Repos\\UPSProxy\\UPSProxy\\Program.cs",
+              "ToolTip": "C:\\Users\\dotan\\UPSPProject\\backend\\UPSProxy\\UPSProxy\\Program.cs",
               "RelativeToolTip": "UPSProxy\\Program.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAA9AAAAAAAAAA==",
+              "ViewState": "AgIAAJgAAAAAAAAAAAAiwKoAAAAZAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-15T12:00:20.958Z",
               "EditorCaption": ""

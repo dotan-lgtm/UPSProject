@@ -1,29 +1,35 @@
 <template>
   <div class="app">
-    <h1>Conversation Data</h1>
+    <h1>תיוג קבצים מהשיחה</h1>
 
-    <p v-if="conversationId">
-      Conversation ID: <strong>{{ conversationId }}</strong>
-    </p>
+    <div v-if="loading" class="loading">טוען קבצים...</div>
 
-    <div v-if="custNo || trackNo" class="results">
-    <p><strong>Customer No:</strong> {{ custNo }}</p>
-    <p><strong>Track No:</strong> {{ trackNo }}</p>
+    <div v-else-if="files.length > 0" class="file-list">
+      <div v-for="(file, index) in files" :key="index" class="file-item">
+        <div class="file-info">
+          📎
+          <a :href="file.fullPath" target="_blank" rel="noopener noreferrer">
+            {{ file.name }}
+          </a>
+          <span v-if="file.size" class="file-size">
+            ({{ formatSize(file.size) }})
+          </span>
+        </div>
+
+        <select v-model="file.selectedTag" class="tag-select">
+          <option disabled value="">בחר קטגוריה...</option>
+          <option v-for="tag in tags" :key="tag.code" :value="tag">
+              {{ tag.name }}
+          </option>
+        </select>
+      </div>
     </div>
 
-    <p v-else>
-      No conversationId found in URL.
-    </p>
-
-    <div v-if="loading">Loading data...</div>
-
-    <div v-else-if="error" class="error">
-      Error: {{ error }}
+    <div v-else class="no-files">
+      לא נמצאו קבצים במייל זה.
     </div>
 
-    <pre v-else class="response-box">
-      {{ apiResponse }}
-    </pre>
+    <button class="submit-btn" @click="submitTags">סיום</button>
   </div>
 </template>
 
@@ -32,83 +38,158 @@ export default {
   data() {
     return {
       conversationId: null,
-      apiResponse: null,
-      error: null,
+      files: [],
+      tags: [
+        { name: "חשבונית ספק", code: 8 },
+        { name: "הוכחות ייצוא", code: 5 },
+        { name: "קטלוג", code: 4 },
+        { name: "העברה בנקאית", code: 6 }
+      ],
       loading: false,
-      custNo: null,
-      trackNo: null
+      error: null
     };
   },
   methods: {
+    // חילוץ conversationId מה-URL או שימוש ב-ID קבוע לבדיקה
     getConversationIdFromUrl() {
       const params = new URLSearchParams(window.location.search);
       const id = params.get("conversationId");
-      this.conversationId = id;
-      console.log("Conversation ID:", id);
+      this.conversationId = id || "5066549580797714"; // ← ID קבוע לבדיקה
+      console.log("Conversation ID:", this.conversationId);
     },
 
-    async fetchConversationData() {
-    if (!this.conversationId) return;
+    // טעינת קבצים מה-backend
+    async fetchFiles() {
+      if (!this.conversationId) return;
 
-    this.loading = true;
-    this.error = null;
+      this.loading = true;
+      this.error = null;
 
-    const url = `http://localhost:3000/api/conversation/${this.conversationId}`;
-
-    try {
-        const res = await fetch(url);
+      try {
+        const res = await fetch(
+          `http://localhost:5000/api/conversation/${this.conversationId}`
+        );
         if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+
         const data = await res.json();
+        console.log("Data from backend:", data);
 
-        // שמור את הפלט הגולמי
-        this.apiResponse = JSON.stringify(data, null, 2);
-
-        // 🔹 חילוץ user.content
-        if (data?.data?.length > 0) {
-        const userContentStr = data.data[0].user?.content;
-        if (userContentStr) {
-            const userContent = JSON.parse(userContentStr); // הפוך מחרוזת לאובייקט
-
-            // שלוף cust_no ו-track_no
-            this.custNo = userContent.cust_no || "N/A";
-            this.trackNo = userContent.track_no || "N/A";
+        if (data.files && Array.isArray(data.files)) {
+          // הוסף selectedTag ונתיב מלא לכל קובץ
+          this.files = data.files.map(f => ({
+            ...f,
+            selectedTag: "",
+            fullPath: f.path.startsWith("http")
+              ? f.path
+              : "https://commbox.io" + f.path
+          }));
         }
-        }
-    } catch (err) {
-        this.error = err.message;
+      } catch (err) {
         console.error("API error:", err);
-    } finally {
+        this.error = err.message;
+      } finally {
         this.loading = false;
+      }
+    },
+
+    // הצגת גודל קובץ בפורמט קריא
+    formatSize(bytes) {
+      if (bytes < 1024) return bytes + " B";
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+      return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+    },
+
+    // שליחת התיוגים (כרגע רק הדפסה)
+    submitTags() {
+    const tagged = this.files.map(f => ({
+        name: f.name,
+        path: f.fullPath,
+        tagName: f.selectedTag?.name || "לא תויג",
+        tagCode: f.selectedTag?.code || null
+    }));
+
+    console.log("תיוגים שנשלחו:", tagged);
+    alert("התיוגים נשלחו בהצלחה!");
     }
-    }
-
-
-
   },
   mounted() {
     this.getConversationIdFromUrl();
-    this.fetchConversationData();
+    this.fetchFiles();
   }
 };
 </script>
 
-<style>
+<style scoped>
 .app {
   font-family: Calibri, sans-serif;
+  direction: rtl;
   text-align: center;
   margin: 50px auto;
-  max-width: 800px;
+  max-width: 700px;
 }
-.response-box {
-  text-align: left;
-  background: #f3f3f3;
-  padding: 20px;
+
+.file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f5f5f5;
+  padding: 12px 18px;
   border-radius: 8px;
-  overflow-x: auto;
-  white-space: pre-wrap;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
 }
-.error {
-  color: red;
+
+.file-info a {
+  color: #000;
+  text-decoration: none;
   font-weight: bold;
+}
+
+.file-info a:hover {
+  text-decoration: underline;
+}
+
+.file-size {
+  color: #555;
+  font-size: 0.9em;
+  margin-right: 6px;
+}
+
+.tag-select {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.submit-btn {
+  background-color: #000;
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.submit-btn:hover {
+  background-color: #333;
+}
+
+.no-files {
+  color: gray;
+  margin-bottom: 20px;
+}
+
+.loading {
+  font-weight: bold;
+  color: #444;
+  margin-bottom: 20px;
 }
 </style>

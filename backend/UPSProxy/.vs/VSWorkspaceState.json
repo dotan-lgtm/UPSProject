@@ -1,7 +1,8 @@
 {
   "ExpandedNodes": [
     "",
-    "\\UPSProxy"
+    "\\UPSProxy",
+    "\\UPSProxy\\Properties"
   ],
   "SelectedNode": "\\UPSProxy\\Program.cs",
   "PreviewInSolutionExplorer": false

@@ -22,15 +22,13 @@ See [Vite Configuration Reference](https://vite.dev/config/).
 ## Project Setup
 
 ```sh
-terminal 1: npm install vite-plugin-mkcert --save-dev
-terminal 2: npm install express node-fetch cors
+npm install vite-plugin-mkcert --save-dev
 
 
 ### Compile and Hot-Reload for Development
 
 ```sh
-terminal 1: npm run dev
-terminal 2: node proxy.js
+npm run dev
 
 ```
 

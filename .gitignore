@@ -1,0 +1,12 @@
+# Ignore Visual Studio cache
+.vs/
+*.vsidx
+
+# Ignore Node modules
+node_modules/
+dist/
+
+# Ignore logs and system files
+*.log
+.DS_Store
+Thumbs.db

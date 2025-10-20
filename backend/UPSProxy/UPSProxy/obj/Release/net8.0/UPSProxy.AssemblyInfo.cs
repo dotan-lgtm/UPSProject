@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("UPSProxy")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c9cccc846dedff247c0e82f6784d6201e34f6549")]
 [assembly: System.Reflection.AssemblyProductAttribute("UPSProxy")]
 [assembly: System.Reflection.AssemblyTitleAttribute("UPSProxy")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
