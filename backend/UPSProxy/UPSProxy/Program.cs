@@ -79,7 +79,7 @@ app.MapGet("/api/conversation/{id}", async (string id) =>
                             // הימנעות מהכפלה אם אותו קובץ כבר נוסף
                             if (!result.files.Any(f => f?.GetType().GetProperty("path")?.GetValue(f)?.ToString() == href))
                             {
-                                // ✅ בדיקה אם הקובץ כבר קיים (גם בתוך childs)
+                                //  בדיקה אם הקובץ כבר קיים (גם בתוך childs)
                                 bool alreadyExists = result.files.Any(f =>
                                     f?.GetType().GetProperty("path")?.GetValue(f)?.ToString() == href);
 
@@ -107,8 +107,8 @@ app.MapGet("/api/conversation/{id}", async (string id) =>
                 foreach (var child in childs.EnumerateArray())
                 {
                     // נבדוק קודם אם ההודעה נשלחה ע"י הלקוח בלבד
-                    if (child.TryGetProperty("user", out var userProp) &&
-                        userProp.TryGetProperty("isManager", out var isManagerProp) &&
+                    if (child.TryGetProperty("user", out var userPropOuter) &&
+                        userPropOuter.TryGetProperty("isManager", out var isManagerProp) &&
                         isManagerProp.GetBoolean() == false)
                     {
                         if (child.TryGetProperty("content", out var childContent))
@@ -118,7 +118,7 @@ app.MapGet("/api/conversation/{id}", async (string id) =>
                             {
                                 using var childDoc = JsonDocument.Parse(childStr);
 
-                                // 🔹 attachments (מיילים)
+                                //  attachments (מיילים)
                                 if (childDoc.RootElement.TryGetProperty("attachments", out var attachments))
                                 {
                                     foreach (var file in attachments.EnumerateArray())
@@ -145,7 +145,6 @@ app.MapGet("/api/conversation/{id}", async (string id) =>
                                     }
                                 }
 
-                                // 🔹 link (וואטסאפ / וובצ'אט)
                                 else if (childDoc.RootElement.TryGetProperty("link", out var link))
                                 {
                                     var href = link.TryGetProperty("href", out var hrefProp) ? hrefProp.GetString() : null;
@@ -173,7 +172,45 @@ app.MapGet("/api/conversation/{id}", async (string id) =>
                 }
             }
 
+
+
+            // שליפת trackno ו-custno מתוך user.content
+            string trackno = "";
+            string custno = "";
+
+            if (firstObj.TryGetProperty("user", out var userMainProp))
+            {
+                if (userMainProp.TryGetProperty("content", out var userContentProp))
+                {
+                    var userContentStr = userContentProp.GetString();
+                    if (!string.IsNullOrEmpty(userContentStr))
+                    {
+                        try
+                        {
+                            using var userContentJson = JsonDocument.Parse(userContentStr);
+                            var rootUser = userContentJson.RootElement;
+
+                            if (rootUser.TryGetProperty("track_no", out var trackNoProp))
+                                trackno = trackNoProp.GetString() ?? "";
+
+                            if (rootUser.TryGetProperty("cust_no", out var custNoProp))
+                                custno = custNoProp.GetString() ?? "";
+                        }
+                        catch
+                        {
+                            Console.WriteLine(" לא הצלחנו לנתח את user.content");
+                        }
+                    }
+                }
+            }
+
+            result.meta["trackno"] = trackno;
+            result.meta["custno"] = custno;
+
         }
+
+
+
 
         return Results.Json(result);
     }
@@ -182,5 +219,117 @@ app.MapGet("/api/conversation/{id}", async (string id) =>
         return Results.BadRequest($"Parsing error: {ex.Message}");
     }
 });
+
+app.MapPost("/api/uploadFiles", async (HttpRequest request) =>
+{
+    try
+    {
+        using var reader = new StreamReader(request.Body);
+        var body = await reader.ReadToEndAsync();
+        if (string.IsNullOrEmpty(body))
+            return Results.BadRequest("Empty request body");
+
+        var files = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(body);
+        if (files == null || files.Count == 0)
+            return Results.BadRequest("No files received");
+
+        var httpClient = new HttpClient();
+        var uploadResults = new List<object>();
+
+        foreach (var file in files)
+        {
+            var name = file.GetValueOrDefault("name")?.ToString();
+            var path = file.GetValueOrDefault("path")?.ToString();
+            var doctypenum = file.GetValueOrDefault("tagCode")?.ToString() ?? "0";
+
+            Console.WriteLine($"📥 מוריד קובץ: {name}");
+            Console.WriteLine($"📄 קוד תיוג (doctypenum): {doctypenum}");
+            bool success = false;
+            string message = "";
+
+            try
+            {
+                // הורדת הקובץ מה-Commbox
+                var fileResponse = await httpClient.GetAsync(path);
+                fileResponse.EnsureSuccessStatusCode();
+
+                var fileBytes = await fileResponse.Content.ReadAsByteArrayAsync();
+                var base64 = Convert.ToBase64String(fileBytes);
+
+                // קביעת סוג הקובץ לפי הסיומת
+                var extension = System.IO.Path.GetExtension(name)?.Trim('.').ToLower() ?? "pdf";
+                string contentType = extension switch
+                {
+                    "jpg" or "jpeg" => "jpg",
+                    "png" => "png",
+                    "pdf" => "pdf",
+                    "doc" or "docx" => "docx",
+                    "xls" or "xlsx" => "xlsx",
+                    _ => "pdf"
+                };
+
+                // API body
+                var uploadPayload = new
+                {
+                    fileName = name,
+                    contentType = contentType,
+                    fileContent = base64,
+                    doctypenum = doctypenum,
+                    trackno = file.GetValueOrDefault("trackno")?.ToString() ?? "",
+                    custno = file.GetValueOrDefault("custno")?.ToString() ?? "",
+                    fileno = ""
+                };
+
+                var json = JsonSerializer.Serialize(uploadPayload);
+                var httpContent = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                // שליחת הקובץ ל-API החדש
+                var uploadResponse = await httpClient.PostAsync(
+                    "https://europe-west3-ups-testing-1.cloudfunctions.net/uploadFileBase64",
+                    httpContent
+                );
+
+                var resultStr = await uploadResponse.Content.ReadAsStringAsync();
+                Console.WriteLine($"🔄 תגובת API עבור {name}: {resultStr}");
+
+                if (uploadResponse.IsSuccessStatusCode)
+                {
+                    try
+                    {
+                        var jsonRes = JsonDocument.Parse(resultStr);
+                        success = jsonRes.RootElement.TryGetProperty("success", out var s) && s.GetBoolean();
+                        message = jsonRes.RootElement.TryGetProperty("message", out var m) ? m.GetString() ?? "" : "";
+                    }
+                    catch
+                    {
+                        success = false;
+                        message = "Parsing error in API response";
+                    }
+                }
+                else
+                {
+                    success = false;
+                    message = $"Upload request failed: {(int)uploadResponse.StatusCode}";
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ שגיאה בהורדת או העלאת קובץ {name}: {ex.Message}");
+                success = false;
+                message = ex.Message;
+            }
+
+            uploadResults.Add(new { name, doctypenum, success, message });
+        }
+
+        return Results.Json(uploadResults);
+    }
+    catch (Exception ex)
+    {
+        return Results.BadRequest($"Error processing upload: {ex.Message}");
+    }
+});
+
+
 
 app.Run();

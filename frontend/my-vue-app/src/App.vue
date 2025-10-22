@@ -11,9 +11,11 @@
           <a :href="file.fullPath" target="_blank" rel="noopener noreferrer">
             {{ file.name }}
           </a>
-          <span v-if="file.size" class="file-size">
-            ({{ formatSize(file.size) }})
-          </span>
+            <span v-if="file.uploadStatus" 
+                :class="{'success': file.uploadStatus === '✅ הצלחה', 'fail': file.uploadStatus === '❌ כישלון'}"
+                class="status">
+            {{ file.uploadStatus }}
+            </span>
         </div>
 
         <select v-model="file.selectedTag" class="tag-select">
@@ -22,6 +24,7 @@
               {{ tag.name }}
           </option>
         </select>
+
       </div>
     </div>
 
@@ -40,13 +43,16 @@ export default {
       conversationId: null,
       files: [],
       tags: [
+        { name: "ללא תיוג", code: null },
         { name: "חשבונית ספק", code: 8 },
         { name: "הוכחות ייצוא", code: 5 },
         { name: "קטלוג", code: 4 },
         { name: "העברה בנקאית", code: 6 }
       ],
       loading: false,
-      error: null
+      error: null,
+      trackno: "",
+      custno: ""
     };
   },
   methods: {
@@ -72,7 +78,12 @@ export default {
         if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
 
         const data = await res.json();
-        console.log("Data from backend:", data);
+
+        // שליפת trackno ו-custno מתוך תגובת ה-backend
+        this.trackno = data.meta?.trackno || "";
+        this.custno = data.meta?.custno || "";
+        console.log("TrackNo:", this.trackno, "CustNo:", this.custno);
+
 
         if (data.files && Array.isArray(data.files)) {
           // הוסף selectedTag ונתיב מלא לכל קובץ
@@ -81,7 +92,7 @@ export default {
             selectedTag: "",
             fullPath: f.path.startsWith("http")
               ? f.path
-              : "https://commbox.io" + f.path
+              : "https://upstest.commbox.io" + f.path
           }));
         }
       } catch (err) {
@@ -100,16 +111,53 @@ export default {
     },
 
     // שליחת התיוגים (כרגע רק הדפסה)
-    submitTags() {
-    const tagged = this.files.map(f => ({
-        name: f.name,
-        path: f.fullPath,
-        tagName: f.selectedTag?.name || "לא תויג",
-        tagCode: f.selectedTag?.code || null
-    }));
+    async submitTags() {
+        const payload = this.files
+        .filter(f => f.selectedTag && f.selectedTag.code !== null) // 🆕 מדלג על "ללא תיוג"
+        .map(f => ({
+            name: f.name,
+            path: f.fullPath,
+            tagCode: f.selectedTag?.code,
+            trackno: this.trackno,
+            custno: this.custno
+        }));
 
-    console.log("תיוגים שנשלחו:", tagged);
-    alert("התיוגים נשלחו בהצלחה!");
+
+        try {
+            const res = await fetch("http://localhost:5000/api/uploadFiles", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+            const results = await res.json();
+
+            console.log("Data from backend", results);
+            results.forEach(r => {
+            console.log(
+                `📎 קובץ: ${r.name} | קוד תיוג: ${r.doctypenum || "לא צוין"} | הצלחה: ${r.success} | הודעה: ${r.message}`
+            );
+            });
+
+
+            this.files.forEach(f => {
+            // דלג על קבצים עם תיוג "ללא תיוג" (code === null)
+            if (f.selectedTag?.code === null) {
+                f.uploadStatus = " קובץ זה לא תויג 🚫";
+                return;
+            }
+
+            const match = results.find(r => r.name === f.name);
+            f.uploadStatus = match?.success ? "✅ הצלחה" : "❌ כישלון";
+            });
+
+            alert("תהליך ההעלאה הסתיים");
+        } catch (err) {
+            console.error("שגיאה בשליחה:", err);
+            alert("אירעה שגיאה בעת שליחת הקבצים");
+        }
     }
   },
   mounted() {
@@ -192,4 +240,6 @@ export default {
   color: #444;
   margin-bottom: 20px;
 }
+
+
 </style>

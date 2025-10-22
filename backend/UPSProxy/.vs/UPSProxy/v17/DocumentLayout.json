@@ -28,10 +28,9 @@
               "RelativeDocumentMoniker": "UPSProxy\\Properties\\credentials.txt",
               "ToolTip": "C:\\Users\\dotan\\UPSPProject\\backend\\UPSProxy\\UPSProxy\\Properties\\credentials.txt",
               "RelativeToolTip": "UPSProxy\\Properties\\credentials.txt",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAA/AQAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAACoAQAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003109|",
-              "WhenOpened": "2025-10-19T10:54:12.685Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-10-19T10:54:12.685Z"
             },
             {
               "$type": "Document",
@@ -41,7 +40,7 @@
               "RelativeDocumentMoniker": "UPSProxy\\Program.cs",
               "ToolTip": "C:\\Users\\dotan\\UPSPProject\\backend\\UPSProxy\\UPSProxy\\Program.cs",
               "RelativeToolTip": "UPSProxy\\Program.cs",
-              "ViewState": "AgIAAJgAAAAAAAAAAAAiwKoAAAAZAAAAAAAAAA==",
+              "ViewState": "AgIAAKUAAAAAAAAAAAAhwLcAAAAgAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-10-15T12:00:20.958Z",
               "EditorCaption": ""
